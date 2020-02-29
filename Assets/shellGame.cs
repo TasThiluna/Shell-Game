@@ -16,6 +16,7 @@ public class shellGame : MonoBehaviour
     public KMSelectable[] cupButtons;
     public Transform[] cups;
     public Transform[] pivots;
+    public GameObject[] highlights;
     public Transform pearl;
     public Transform defaultPosition;
 
@@ -66,6 +67,8 @@ public class shellGame : MonoBehaviour
     IEnumerator StageTwo()
     {
         yield return null;
+        foreach (GameObject highlight in highlights)
+            highlight.SetActive(true);
         endingCup = Array.IndexOf(cups, cups.Where(c => c.GetComponentInChildren<Transform>() != null).First());
         Debug.LogFormat("[Shell Game #{0}] After shuffling, the pearl is under the {1} cup.", moduleId, positionNames[endingCup]);
         solution = table[tableRule][endingCup];
@@ -187,6 +190,8 @@ public class shellGame : MonoBehaviour
 
     IEnumerator RiseCups()
     {
+        foreach (GameObject highlight in highlights)
+            highlight.SetActive(false);
         cantPress = true;
         cantPressCup = true;
         var elapsed = 0f;
