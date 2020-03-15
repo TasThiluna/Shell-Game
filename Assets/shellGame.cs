@@ -67,9 +67,9 @@ public class shellGame : MonoBehaviour
     IEnumerator StageTwo()
     {
         yield return null;
+        endingCup = Array.IndexOf(cups, cups.Where(c => c.GetComponentsInChildren<Transform>(false).Any(x => x.name == "pearl")).First());
         foreach (GameObject highlight in highlights)
             highlight.SetActive(true);
-        endingCup = Array.IndexOf(cups, cups.Where(c => c.GetComponentInChildren<Transform>() != null).First());
         Debug.LogFormat("[Shell Game #{0}] After shuffling, the pearl is under the {1} cup.", moduleId, positionNames[endingCup]);
         solution = table[tableRule][endingCup];
         if (solution != 3)
@@ -142,6 +142,8 @@ public class shellGame : MonoBehaviour
         yield return null;
         moduleSolved = true;
         module.HandlePass();
+        foreach (GameObject highlight in highlights)
+            highlight.SetActive(false);
         pearl.SetParent(defaultPosition, true);
         if (solution != 3)
         {
@@ -185,6 +187,7 @@ public class shellGame : MonoBehaviour
                 yield return null;
                 elapsed += Time.deltaTime;
             }
+            audio.PlaySoundAtTransform("tap", cups[solution]);
         }
     }
 
@@ -238,6 +241,7 @@ public class shellGame : MonoBehaviour
             var endRotation = Quaternion.Euler(0f, 180f, 0f);
             var elapsed = 0f;
             var duration = .5f;
+            audio.PlaySoundAtTransform("slide" + rnd.Range(1, 6), defaultPosition);
             while (elapsed < duration)
             {
                 pivots[rotations[i]].localRotation = Quaternion.Slerp(Quaternion.identity, endRotation, elapsed / duration);

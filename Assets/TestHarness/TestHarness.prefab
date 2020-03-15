@@ -20158,7 +20158,13 @@ MonoBehaviour:
   CustomWidget: {fileID: 114213089377510072}
   HighlightPrefab: {fileID: 100000, guid: d78a484c6e87f1b47b6596ac080fe942, type: 2}
   AudioVolume: 0.25
-  AudioClips: []
+  AudioClips:
+  - {fileID: 8300000, guid: 6b4dbdf00abb5814a85eeb1490bdac24, type: 3}
+  - {fileID: 8300000, guid: d68abaafcf0a6de4b8c1e7bc78a92b63, type: 3}
+  - {fileID: 8300000, guid: 49e9b6a7dbf2f8e4eb5a0b063d3c70ba, type: 3}
+  - {fileID: 8300000, guid: c6e8b742e4819a44eba942f4d1ae1826, type: 3}
+  - {fileID: 8300000, guid: 8ecd24cb34e81244b92b558d67a83921, type: 3}
+  - {fileID: 8300000, guid: 42db996dea5aaac449cc81021e26ab6b, type: 3}
   StrikeCount: 3
   TimeLimit: 600
   BombSize: 1
