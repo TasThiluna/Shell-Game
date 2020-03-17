@@ -16,7 +16,7 @@ public class shellGame : MonoBehaviour
     public KMSelectable[] cupButtons;
     public Transform[] cups;
     public Transform[] pivots;
-    public GameObject[] highlights;
+    public Transform[] highlights;
     public Transform pearl;
     public Transform defaultPosition;
 
@@ -40,7 +40,16 @@ public class shellGame : MonoBehaviour
         new int[2] { 0, 2 },
         new int[2] { 1, 2 }
     };
-    private static readonly Vector3[] defaultCupPositions = new[] { new Vector3(-0.056f, 0.0347f, 0.0187428f), new Vector3(0, 0.0347f, 0.0187428f), new Vector3(0.056f, 0.0347f, 0.0187428f) };
+    private static readonly Vector3[] defaultCupPositions = new[] {
+        new Vector3(-0.056f, 0.0347f, 0.0187428f),
+        new Vector3(0, 0.0347f, 0.0187428f),
+        new Vector3(0.056f, 0.0347f, 0.0187428f)
+    };
+    private static readonly Vector3[] hiddenPositions = new[] {
+        new Vector3(2.94f, -5f, 0f),
+        new Vector3(0f, -5f, 0f),
+        new Vector3(-3.7f, -5f, 0f)
+    };
     private static readonly string[] positionNames = new string[3] { "left", "middle", "right" };
     private bool hasRotated;
     private bool cantPress;
@@ -68,8 +77,8 @@ public class shellGame : MonoBehaviour
     {
         yield return null;
         endingCup = Array.IndexOf(cups, cups.Where(c => c.GetComponentsInChildren<Transform>(false).Any(x => x.name == "pearl")).First());
-        foreach (GameObject highlight in highlights)
-            highlight.SetActive(true);
+        foreach (Transform highlight in highlights)
+            highlight.localPosition = new Vector3(0f, -1.29f, 0f);
         Debug.LogFormat("[Shell Game #{0}] After shuffling, the pearl is under the {1} cup.", moduleId, positionNames[endingCup]);
         solution = table[tableRule][endingCup];
         if (solution != 3)
@@ -142,8 +151,8 @@ public class shellGame : MonoBehaviour
         yield return null;
         moduleSolved = true;
         module.HandlePass();
-        foreach (GameObject highlight in highlights)
-            highlight.SetActive(false);
+        foreach (Transform highlight in highlights)
+            highlight.gameObject.SetActive(false);
         pearl.SetParent(defaultPosition, true);
         if (solution != 3)
         {
@@ -193,8 +202,8 @@ public class shellGame : MonoBehaviour
 
     IEnumerator RiseCups()
     {
-        foreach (GameObject highlight in highlights)
-            highlight.SetActive(false);
+        foreach (Transform highlight in highlights)
+            highlight.localPosition = hiddenPositions[Array.IndexOf(highlights, highlight)];
         cantPress = true;
         cantPressCup = true;
         var elapsed = 0f;

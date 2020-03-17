@@ -14,7 +14,10 @@ MonoBehaviour:
   id: shellGame
   title: Shell Game
   author: TasThing
-  description: 
+  description: 'Don''t get hustled!
+
+
+    Module idea by Zawu, implementation by TasThing.'
   version: 
   outputFolder: build
-  previewImage: {fileID: 0}
+  previewImage: {fileID: 2800000, guid: 27d1ad3d3600d7540bd21f0b71ef003d, type: 3}
