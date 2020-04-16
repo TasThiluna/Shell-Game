@@ -318,7 +318,7 @@ public class shellGame : MonoBehaviour
     }
 
     #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} start [Presses the 'Go!' button] | !{0} <left/middle/right> [Selects the cup in that position.] | Note: Instead of 5 seconds to select a cup, you have 20.";
+    private readonly string TwitchHelpMessage = @"!{0} start [Presses the 'Go!' button. Remember to tilt!] | !{0} <left/middle/right> [Selects the cup in that position.] | Note: Instead of 5 seconds to select a cup, you have 20.";
     #pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand(string input)
@@ -334,7 +334,6 @@ public class shellGame : MonoBehaviour
                 yield break;
             }
             yield return null;
-            yield return ProcessTwitchCommand("tilt");
             button.OnInteract();
         }
         else if (positionNames.Any(x => cmd == x))
