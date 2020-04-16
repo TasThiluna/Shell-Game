@@ -51,6 +51,7 @@ public class shellGame : MonoBehaviour
         new Vector3(-3.7f, -5f, 0f)
     };
     private static readonly string[] positionNames = new string[3] { "left", "middle", "right" };
+    private static float waitTime;
     private bool hasRotated;
     private bool cantPress;
     private bool cantPressCup = true;
@@ -58,11 +59,15 @@ public class shellGame : MonoBehaviour
     private static int moduleIdCounter = 1;
     private int moduleId;
     private bool moduleSolved;
+    #pragma warning disable 0649
+    private bool TwitchPlaysActive;
+    #pragma warning restore 0649
 
     void Awake()
     {
         moduleId = moduleIdCounter++;
         button.OnInteract += delegate () { PressButton(); return false; };
+        module.OnActivate += Activate;
         foreach (KMSelectable cup in cupButtons)
             cup.OnInteract += delegate () { PressCup(cup); return false; };
     }
@@ -71,6 +76,11 @@ public class shellGame : MonoBehaviour
     {
         tableRule = CalculateTableRule();
         Debug.LogFormat("[Shell Game #{0}] Using row {1}.", moduleId, CalculateTableRule() + 1);
+    }
+
+    void Activate()
+    {
+        waitTime = TwitchPlaysActive ? 20f : 5f;
     }
 
     IEnumerator StageTwo()
@@ -92,7 +102,7 @@ public class shellGame : MonoBehaviour
             pearl.gameObject.SetActive(false);
         }
         cantPressCup = false;
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(waitTime);
         if (solution != 3)
         {
             module.HandleStrike();
@@ -305,5 +315,58 @@ public class shellGame : MonoBehaviour
             return 5;
         else
             return 6;
+    }
+
+    #pragma warning disable 414
+    private readonly string TwitchHelpMessage = @"!{0} start [Presses the 'Go!' button] | !{0} <left/middle/right> [Selects the cup in that position.] | Note: Instead of 5 seconds to select a cup, you have 20.";
+    #pragma warning restore 414
+
+    IEnumerator ProcessTwitchCommand(string input)
+    {
+        var cmd = input.ToLowerInvariant();
+        if (cmd.Split(' ').ToArray().Length != 1)
+            yield break;
+        if (cmd == "start")
+        {
+            if (cantPress)
+            {
+                yield return "sendtochaterror You can’t do that right now.";
+                yield break;
+            }
+            yield return null;
+            yield return ProcessTwitchCommand("tilt");
+            button.OnInteract();
+        }
+        else if (positionNames.Any(x => cmd == x))
+        {
+            yield return null;
+            cupButtons[Array.IndexOf(positionNames, cmd)].OnInteract();
+        }
+        else
+            yield break;
+    }
+
+    IEnumerator TwitchHandleForcedSolve()
+    {
+        if (cantPress && cantPressCup)
+            goto startShufflingCups;
+        else if (cantPress && !cantPressCup)
+            goto readyToPressCup;
+        else
+            button.OnInteract();
+        startShufflingCups:
+        while (cantPressCup)
+        {
+            yield return true;
+            yield return null;
+        }
+        readyToPressCup:
+        if (solution != 3)
+            cupButtons[solution].OnInteract();
+        while (!moduleSolved)
+        {
+            yield return true;
+            yield return new WaitForSeconds(.1f);
+        }
     }
 }
