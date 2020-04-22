@@ -354,11 +354,9 @@ public class shellGame : MonoBehaviour
         else
             button.OnInteract();
         startShufflingCups:
+            // This is to test the formatting
         while (cantPressCup)
-        {
-            yield return true;
             yield return null;
-        }
         readyToPressCup:
         if (solution != 3)
             cupButtons[solution].OnInteract();
