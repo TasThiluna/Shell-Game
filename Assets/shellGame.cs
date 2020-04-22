@@ -348,18 +348,23 @@ public class shellGame : MonoBehaviour
     IEnumerator TwitchHandleForcedSolve()
     {
         if (cantPress && cantPressCup)
-            goto startShufflingCups;
+        {
+            if (solution != 3)
+                goto startShufflingCups;
+            else
+                goto waiting;
+        }
         else if (cantPress && !cantPressCup)
             goto readyToPressCup;
         else
             button.OnInteract();
         startShufflingCups:
-            // This is to test the formatting
         while (cantPressCup)
             yield return null;
         readyToPressCup:
         if (solution != 3)
             cupButtons[solution].OnInteract();
+        waiting:
         while (!moduleSolved)
         {
             yield return true;
