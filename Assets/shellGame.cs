@@ -326,6 +326,8 @@ public class shellGame : MonoBehaviour
         var cmd = input.ToLowerInvariant();
         if (cmd.Split(' ').ToArray().Length != 1)
             yield break;
+        yield return "strike";
+        yield return "solve";
         if (cmd == "start")
         {
             if (cantPress)
