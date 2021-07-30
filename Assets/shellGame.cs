@@ -25,6 +25,7 @@ public class shellGame : MonoBehaviour
     private int tableRule;
     private int solution;
     private int[] rotations = new int[10];
+    private bool[] tricks = new bool[10];
     private static readonly int[][] table = new int[7][] {
         new int[3] { 0, 1, 2 },
         new int[3] { 3, 2, 1 },
@@ -130,7 +131,10 @@ public class shellGame : MonoBehaviour
         Debug.LogFormat("[Shell Game #{0}] The pearl is under the {1} cup.", moduleId, positionNames[startingCup]);
         pearl.SetParent(defaultPosition, true);
         for (int i = 0; i < 10; i++)
+        { 
             rotations[i] = rnd.Range(0, 3);
+            tricks[i] = rnd.Range(0, 6) == 0;
+        }
         StartCoroutine(RiseCups());
     }
 
@@ -257,7 +261,7 @@ public class shellGame : MonoBehaviour
         {
             foreach (int ix in cupsToRotate[rotations[i]])
                 cups[ix].SetParent(pivots[rotations[i]], true);
-            var endRotation = Quaternion.Euler(0f, 180f, 0f);
+            var endRotation = !tricks[i] ? Quaternion.Euler(0f, 180f, 0f) : Quaternion.Euler(0f, 125f, 0f);
             var elapsed = 0f;
             var duration = .5f;
             audio.PlaySoundAtTransform("slide" + rnd.Range(1, 6), defaultPosition);
@@ -268,15 +272,30 @@ public class shellGame : MonoBehaviour
                 elapsed += Time.deltaTime;
             }
             pivots[rotations[i]].localRotation = endRotation;
+            if (tricks[i])
+            {
+                elapsed = 0f;
+                audio.PlaySoundAtTransform("slide" + rnd.Range(1, 6), defaultPosition);
+                while (elapsed < duration)
+                {
+                    pivots[rotations[i]].localRotation = Quaternion.Slerp(endRotation, Quaternion.Euler(0f, 0f, 0f), elapsed / duration);
+                    yield return null;
+                    elapsed += Time.deltaTime;
+                }
+                pivots[rotations[i]].localRotation = Quaternion.Euler(0f, 0f, 0f);
+            }
             foreach (int ix in cupsToRotate[rotations[i]])
                 cups[ix].SetParent(defaultPosition, true);
             pivots[rotations[i]].localRotation = Quaternion.identity;
-            var t = cups[cupsToRotate[rotations[i]][0]];
-            cups[cupsToRotate[rotations[i]][0]] = cups[cupsToRotate[rotations[i]][1]];
-            cups[cupsToRotate[rotations[i]][1]] = t;
-            var b = cupButtons[cupsToRotate[rotations[i]][0]];
-            cupButtons[cupsToRotate[rotations[i]][0]] = cupButtons[cupsToRotate[rotations[i]][1]];
-            cupButtons[cupsToRotate[rotations[i]][1]] = b;
+            if (!tricks[i])
+            {
+                var t = cups[cupsToRotate[rotations[i]][0]];
+                cups[cupsToRotate[rotations[i]][0]] = cups[cupsToRotate[rotations[i]][1]];
+                cups[cupsToRotate[rotations[i]][1]] = t;
+                var b = cupButtons[cupsToRotate[rotations[i]][0]];
+                cupButtons[cupsToRotate[rotations[i]][0]] = cupButtons[cupsToRotate[rotations[i]][1]];
+                cupButtons[cupsToRotate[rotations[i]][1]] = b;
+            }
             yield return new WaitForSeconds(.25f);
         }
         hasRotated = true;

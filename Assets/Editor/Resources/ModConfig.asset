@@ -16,6 +16,6 @@ MonoBehaviour:
   author: TasThing
   description: "Don't get hustled!\r\n\r\nModule idea by Zawu, implementation by TasThing.\r\n\r\nManual
     HTML: https://ktane.timwi.de/HTML/Shell%20Game.html\r\nManual PDF: https://ktane.timwi.de/PDF/Shell%20Game.pdf"
-  version: 
+  version: 1.2
   outputFolder: build
   previewImage: {fileID: 2800000, guid: 27d1ad3d3600d7540bd21f0b71ef003d, type: 3}
