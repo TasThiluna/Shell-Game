@@ -19,6 +19,7 @@ public class shellGame : MonoBehaviour
     public Transform[] highlights;
     public Transform pearl;
     public Transform defaultPosition;
+    public Transform cupsParent;
 
     private int startingCup;
     private int endingCup;
@@ -42,9 +43,9 @@ public class shellGame : MonoBehaviour
         new int[2] { 1, 2 }
     };
     private static readonly Vector3[] defaultCupPositions = new[] {
-        new Vector3(-0.056f, 0.0347f, 0.0187428f),
-        new Vector3(0, 0.0347f, 0.0187428f),
-        new Vector3(0.056f, 0.0347f, 0.0187428f)
+        new Vector3(-0.056f, 0.0188f, -0.01425f),
+        new Vector3(0f, 0.0188f, -0.01425f),
+        new Vector3(0.056f, 0.0188f, -0.01425f)
     };
     private static readonly Vector3[] hiddenPositions = new[] {
         new Vector3(2.94f, -5f, 0f),
@@ -191,12 +192,12 @@ public class shellGame : MonoBehaviour
                 cups[solution].localPosition = new Vector3(
                     defaultCupPositions[solution].x,
                     .0765f,
-                    Mathf.Lerp(defaultCupPositions[solution].z, .0535f, elapsed / duration)
+                    Mathf.Lerp(defaultCupPositions[solution].z, .027f, elapsed / duration)
                 );
                 yield return null;
                 elapsed += Time.deltaTime;
             }
-            cups[solution].localPosition = new Vector3(defaultCupPositions[solution].x, .0765f, .0535f);
+            cups[solution].localPosition = new Vector3(defaultCupPositions[solution].x, .0765f, .027f);
             yield return new WaitForSeconds(.25f);
             elapsed = 0f;
             duration = .5f;
@@ -205,7 +206,7 @@ public class shellGame : MonoBehaviour
                 cups[solution].localPosition = new Vector3(
                     defaultCupPositions[solution].x,
                     Mathf.Lerp(.0765f, defaultCupPositions[solution].y, elapsed / duration),
-                    .0535f
+                    .027f
                 );
                 yield return null;
                 elapsed += Time.deltaTime;
@@ -224,32 +225,20 @@ public class shellGame : MonoBehaviour
         var duration = 1f;
         while (elapsed < duration)
         {
-            for (int i = 0; i < cups.Length; i++)
-                cups[i].localPosition = new Vector3(
-                    defaultCupPositions[i].x,
-                    Mathf.Lerp(defaultCupPositions[i].y, .0765f, elapsed / duration),
-                    defaultCupPositions[i].z
-                );
+            cupsParent.localEulerAngles = new Vector3(Easing.InOutQuad(elapsed, 0f, 90f, duration), 0f, 0f);
             yield return null;
             elapsed += Time.deltaTime;
         }
-        for (int i = 0; i < cups.Length; i++)
-            cups[i].localPosition = new Vector3(defaultCupPositions[i].x, .0765f, defaultCupPositions[i].z);
+        cupsParent.localEulerAngles = new Vector3(90f, 0f, 0f);
         yield return new WaitForSeconds(2f);
         elapsed = 0f;
         while (elapsed < duration)
         {
-            for (int i = 0; i < cups.Length; i++)
-                cups[i].localPosition = new Vector3(
-                    defaultCupPositions[i].x,
-                    Mathf.Lerp(.0765f, defaultCupPositions[i].y, elapsed / duration),
-                    defaultCupPositions[i].z
-                );
+            cupsParent.localEulerAngles = new Vector3(Easing.InOutQuad(elapsed, 90f, 0f, duration), 0f, 0f);
             yield return null;
             elapsed += Time.deltaTime;
         }
-        for (int i = 0; i < cups.Length; i++)
-            cups[i].localPosition = defaultCupPositions[i];
+        cupsParent.localEulerAngles = new Vector3(0f, 0f, 0f);
         pearl.SetParent(cups[startingCup], true);
         if (!hasRotated)
             StartCoroutine(RotateCups());
@@ -285,7 +274,7 @@ public class shellGame : MonoBehaviour
                 pivots[rotations[i]].localRotation = Quaternion.Euler(0f, 0f, 0f);
             }
             foreach (int ix in cupsToRotate[rotations[i]])
-                cups[ix].SetParent(defaultPosition, true);
+                cups[ix].SetParent(cupsParent, true);
             pivots[rotations[i]].localRotation = Quaternion.identity;
             if (!tricks[i])
             {
