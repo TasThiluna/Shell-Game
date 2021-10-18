@@ -48,9 +48,9 @@ public class shellGame : MonoBehaviour
         new Vector3(0.056f, 0.0188f, -0.01425f)
     };
     private static readonly Vector3[] hiddenPositions = new[] {
-        new Vector3(2.94f, -5f, 0f),
-        new Vector3(0f, -5f, 0f),
-        new Vector3(-3.7f, -5f, 0f)
+        new Vector3(2.94f, -5f, 2f),
+        new Vector3(0f, -5f, 2f),
+        new Vector3(-3.7f, -5f, 2f)
     };
     private static readonly string[] positionNames = new string[3] { "left", "middle", "right" };
     private static float waitTime;
@@ -61,9 +61,9 @@ public class shellGame : MonoBehaviour
     private static int moduleIdCounter = 1;
     private int moduleId;
     private bool moduleSolved;
-    #pragma warning disable 0649
+#pragma warning disable 0649
     private bool TwitchPlaysActive;
-    #pragma warning restore 0649
+#pragma warning restore 0649
 
     void Awake()
     {
@@ -90,7 +90,7 @@ public class shellGame : MonoBehaviour
         yield return null;
         endingCup = Array.IndexOf(cups, cups.Where(c => c.GetComponentsInChildren<Transform>(false).Any(x => x.name == "pearl")).First());
         foreach (Transform highlight in highlights)
-            highlight.localPosition = new Vector3(0f, -1.29f, 0f);
+            highlight.localPosition = new Vector3(0f, -1.26f, 0f);
         Debug.LogFormat("[Shell Game #{0}] After shuffling, the pearl is under the {1} cup.", moduleId, positionNames[endingCup]);
         solution = table[tableRule][endingCup];
         if (solution != 3)
@@ -132,7 +132,7 @@ public class shellGame : MonoBehaviour
         Debug.LogFormat("[Shell Game #{0}] The pearl is under the {1} cup.", moduleId, positionNames[startingCup]);
         pearl.SetParent(defaultPosition, true);
         for (int i = 0; i < 10; i++)
-        { 
+        {
             rotations[i] = rnd.Range(0, 3);
             tricks[i] = rnd.Range(0, 6) == 0;
         }
@@ -325,9 +325,9 @@ public class shellGame : MonoBehaviour
             return 6;
     }
 
-    #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} start [Presses the 'Go!' button. Remember to tilt!] | !{0} <left/middle/right> [Selects the cup in that position.] | Note: Instead of 5 seconds to select a cup, you have 20.";
-    #pragma warning restore 414
+#pragma warning disable 414
+    private readonly string TwitchHelpMessage = @"!{0} start [Presses the 'Go!' button.] | !{0} <left/middle/right> [Selects the cup in that position.] | Note: Instead of 5 seconds to select a cup, you have 20.";
+#pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand(string input)
     {
