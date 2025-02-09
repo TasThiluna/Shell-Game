@@ -16,8 +16,9 @@ public class shellGame : MonoBehaviour
     public KMSelectable[] cupButtons;
     public Transform[] cups;
     public Transform[] pivots;
-    public Transform[] highlights;
-    public Transform pearl;
+    public GameObject[] highlights;
+    public TextMesh buttonText;
+    public Transform statusLight;
     public Transform defaultPosition;
     public Transform cupsParent;
 
@@ -47,16 +48,14 @@ public class shellGame : MonoBehaviour
         new Vector3(0f, 0.0188f, -0.01425f),
         new Vector3(0.056f, 0.0188f, -0.01425f)
     };
-    private static readonly Vector3[] hiddenPositions = new[] {
-        new Vector3(2.94f, -5f, 2f),
-        new Vector3(0f, -5f, 2f),
-        new Vector3(-3.7f, -5f, 2f)
-    };
     private static readonly string[] positionNames = new string[3] { "left", "middle", "right" };
     private static float waitTime;
     private bool hasRotated;
     private bool cantPress;
     private bool cantPressCup = true;
+
+    private Coroutine waiting;
+    private Coroutine textScroll;
 
     private static int moduleIdCounter = 1;
     private int moduleId;
@@ -65,7 +64,7 @@ public class shellGame : MonoBehaviour
     private bool TwitchPlaysActive;
 #pragma warning restore 0649
 
-    void Awake()
+    private void Awake()
     {
         moduleId = moduleIdCounter++;
         button.OnInteract += delegate () { PressButton(); return false; };
@@ -74,34 +73,35 @@ public class shellGame : MonoBehaviour
             cup.OnInteract += delegate () { PressCup(cup); return false; };
     }
 
-    void Start()
+    private void Start()
     {
+        StartCoroutine(MoveStatusLight());
         tableRule = CalculateTableRule();
         Debug.LogFormat("[Shell Game #{0}] Using row {1}.", moduleId, CalculateTableRule() + 1);
     }
 
-    void Activate()
+    private void Activate()
     {
         waitTime = TwitchPlaysActive ? 20f : 5f;
     }
 
-    IEnumerator StageTwo()
+    private IEnumerator StageTwo()
     {
         yield return null;
-        endingCup = Array.IndexOf(cups, cups.Where(c => c.GetComponentsInChildren<Transform>(false).Any(x => x.name == "pearl")).First());
-        foreach (Transform highlight in highlights)
-            highlight.localPosition = new Vector3(0f, -1.26f, 0f);
-        Debug.LogFormat("[Shell Game #{0}] After shuffling, the pearl is under the {1} cup.", moduleId, positionNames[endingCup]);
+        endingCup = Array.IndexOf(cups, cups.Where(c => c.GetComponentsInChildren<Transform>(false).Any(x => x.name == "StatusLight")).First());
+        foreach (GameObject highlight in highlights)
+            highlight.SetActive(true);
+        Debug.LogFormat("[Shell Game #{0}] After shuffling, the status light is under the {1} cup.", moduleId, positionNames[endingCup]);
         solution = table[tableRule][endingCup];
         if (solution != 3)
         {
-            Debug.LogFormat("[Shell Game #{0}] The pearl is actually under the {1} cup.", moduleId, positionNames[solution]);
-            pearl.SetParent(cups[solution], false);
+            Debug.LogFormat("[Shell Game #{0}] The status light is actually under the {1} cup.", moduleId, positionNames[solution]);
+            statusLight.SetParent(cups[solution], false);
         }
         else
         {
-            Debug.LogFormat("[Shell Game #{0}] The module stole the pearl! Don't touch any cups.", moduleId);
-            pearl.gameObject.SetActive(false);
+            Debug.LogFormat("[Shell Game #{0}] The module stole the status light! Don't touch any cups.", moduleId);
+            statusLight.gameObject.SetActive(false);
         }
         cantPressCup = false;
         yield return new WaitForSeconds(waitTime);
@@ -120,17 +120,17 @@ public class shellGame : MonoBehaviour
         }
     }
 
-    void PressButton()
+    private void PressButton()
     {
         button.AddInteractionPunch(1f);
         audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, button.transform);
         if (moduleSolved || cantPress)
             return;
         startingCup = rnd.Range(0, 3);
-        pearl.gameObject.SetActive(true);
-        pearl.SetParent(cups[startingCup], false);
-        Debug.LogFormat("[Shell Game #{0}] The pearl is under the {1} cup.", moduleId, positionNames[startingCup]);
-        pearl.SetParent(defaultPosition, true);
+        statusLight.gameObject.SetActive(true);
+        statusLight.SetParent(cups[startingCup], false);
+        Debug.LogFormat("[Shell Game #{0}] The status light is under the {1} cup.", moduleId, positionNames[startingCup]);
+        statusLight.SetParent(defaultPosition, true);
         for (int i = 0; i < 10; i++)
         {
             rotations[i] = rnd.Range(0, 3);
@@ -139,15 +139,15 @@ public class shellGame : MonoBehaviour
         StartCoroutine(RiseCups());
     }
 
-    void PressCup(KMSelectable cup)
+    private void PressCup(KMSelectable cup)
     {
         if (moduleSolved || cantPressCup)
             return;
         var ix = Array.IndexOf(cupButtons, cup);
         if (ix != solution)
         {
-            module.HandleStrike();
-            StopAllCoroutines();
+            StartCoroutine(HideStatusLightAndStrike());
+            StopCoroutine(waiting);
             hasRotated = false;
             cantPress = false;
             cantPressCup = true;
@@ -155,20 +155,19 @@ public class shellGame : MonoBehaviour
         }
         else
         {
-            StopAllCoroutines();
+            StopCoroutine(waiting);
             Debug.LogFormat("[Shell Game #{0}] You chose the {1} cup. That was correct. Module solved!", moduleId, positionNames[ix]);
             StartCoroutine(Solve());
         }
     }
 
-    IEnumerator Solve()
+    private IEnumerator Solve()
     {
         yield return null;
         moduleSolved = true;
-        module.HandlePass();
-        foreach (Transform highlight in highlights)
-            highlight.gameObject.SetActive(false);
-        pearl.SetParent(defaultPosition, true);
+        foreach (GameObject highlight in highlights)
+            highlight.SetActive(false);
+        statusLight.SetParent(defaultPosition, true);
         if (solution != 3)
         {
             var elapsed = 0f;
@@ -212,13 +211,16 @@ public class shellGame : MonoBehaviour
                 elapsed += Time.deltaTime;
             }
             audio.PlaySoundAtTransform("tap", cups[solution]);
+            buttonText.text = rnd.Range(0, 5) == 0 ? ":3" : ":)";
+            buttonText.color = Color.green;
+            module.HandlePass();
         }
     }
 
-    IEnumerator RiseCups()
+    private IEnumerator RiseCups()
     {
-        foreach (Transform highlight in highlights)
-            highlight.localPosition = hiddenPositions[Array.IndexOf(highlights, highlight)];
+        foreach (GameObject highlight in highlights)
+            highlight.SetActive(false);
         cantPress = true;
         cantPressCup = true;
         var elapsed = 0f;
@@ -239,20 +241,22 @@ public class shellGame : MonoBehaviour
             elapsed += Time.deltaTime;
         }
         cupsParent.localEulerAngles = new Vector3(0f, 0f, 0f);
-        pearl.SetParent(cups[startingCup], true);
+        statusLight.SetParent(cups[startingCup], true);
         if (!hasRotated)
             StartCoroutine(RotateCups());
     }
 
-    IEnumerator RotateCups()
+    private IEnumerator RotateCups()
     {
+        textScroll = StartCoroutine(ScrollText());
         for (int i = 0; i < 10; i++)
         {
             foreach (int ix in cupsToRotate[rotations[i]])
                 cups[ix].SetParent(pivots[rotations[i]], true);
             var endRotation = !tricks[i] ? Quaternion.Euler(0f, 180f, 0f) : Quaternion.Euler(0f, 125f, 0f);
             var elapsed = 0f;
-            var duration = .5f;
+            var duration = .3f;
+            duration /= !tricks[i] ? 1f : 2f;
             audio.PlaySoundAtTransform("slide" + rnd.Range(1, 6), defaultPosition);
             while (elapsed < duration)
             {
@@ -285,13 +289,41 @@ public class shellGame : MonoBehaviour
                 cupButtons[cupsToRotate[rotations[i]][0]] = cupButtons[cupsToRotate[rotations[i]][1]];
                 cupButtons[cupsToRotate[rotations[i]][1]] = b;
             }
-            yield return new WaitForSeconds(.25f);
+            yield return new WaitForSeconds(.1f);
         }
         hasRotated = true;
-        StartCoroutine(StageTwo());
+        StopCoroutine(textScroll);
+        buttonText.text = "??";
+        waiting = StartCoroutine(StageTwo());
     }
 
-    void Update()
+    private IEnumerator ScrollText()
+    {
+        var texts = new[] { "!    ", " !   ", "  !  ", "   ! ", "    !" };
+        for (int i = 0; i < 5; i = (i + 1) % 5)
+        {
+            buttonText.text = texts[i];
+            yield return new WaitForSeconds(.25f);
+        }
+    }
+
+    private IEnumerator MoveStatusLight()
+    {
+        yield return null;
+        statusLight.localPosition -= new Vector3(5f, 4f, 0f);
+    }
+
+    private IEnumerator HideStatusLightAndStrike()
+    {
+        buttonText.text = ":(";
+        statusLight.gameObject.SetActive(false);
+        module.HandleStrike();
+        yield return new WaitForSeconds(.75f);
+        statusLight.gameObject.SetActive(true);
+        buttonText.text = "GO!";
+    }
+
+    private void Update()
     {
         if (bomb.GetStrikes() == 1)
         {
@@ -308,7 +340,7 @@ public class shellGame : MonoBehaviour
         }
     }
 
-    int CalculateTableRule()
+    private int CalculateTableRule()
     {
         var ser = bomb.GetSerialNumber();
         if (bomb.GetOnIndicators().Contains("BOB"))
@@ -329,7 +361,7 @@ public class shellGame : MonoBehaviour
     private readonly string TwitchHelpMessage = @"!{0} start [Presses the 'Go!' button.] | !{0} <left/middle/right> [Selects the cup in that position.] | Note: Instead of 5 seconds to select a cup, you have 20.";
 #pragma warning restore 414
 
-    IEnumerator ProcessTwitchCommand(string input)
+    private IEnumerator ProcessTwitchCommand(string input)
     {
         var cmd = input.ToLowerInvariant();
         if (cmd.Split(' ').ToArray().Length != 1)
@@ -355,7 +387,7 @@ public class shellGame : MonoBehaviour
             yield break;
     }
 
-    IEnumerator TwitchHandleForcedSolve()
+    private IEnumerator TwitchHandleForcedSolve()
     {
         if (cantPress && cantPressCup)
         {

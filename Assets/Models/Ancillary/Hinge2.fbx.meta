@@ -1,16 +1,14 @@
 fileFormatVersion: 2
-guid: 3faada14c991a8a4cb2bf3f21dccb699
+guid: 9f2bc14fec1b61848854e94747c6f841
 ModelImporter:
   serializedVersion: 22
   fileIDToRecycleName:
-    100000: ModelComponent
-    100002: //RootNode
-    400000: ModelComponent
-    400002: //RootNode
-    2100000: ModelComponentMat
-    2300000: ModelComponent
-    3300000: ModelComponent
-    4300000: ModelComponent
+    100000: //RootNode
+    400000: //RootNode
+    2100000: Component_PuzzleBack_mat
+    2300000: //RootNode
+    3300000: //RootNode
+    4300000: Hinge
   externalObjects: {}
   materials:
     importMaterials: 1
