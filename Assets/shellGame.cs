@@ -211,10 +211,10 @@ public class shellGame : MonoBehaviour
                 elapsed += Time.deltaTime;
             }
             audio.PlaySoundAtTransform("tap", cups[solution]);
-            buttonText.text = rnd.Range(0, 5) == 0 ? ":3" : ":)";
-            buttonText.color = Color.green;
-            module.HandlePass();
         }
+        buttonText.text = rnd.Range(0, 5) == 0 ? ":3" : ":)";
+        buttonText.color = Color.green;
+        module.HandlePass();
     }
 
     private IEnumerator RiseCups()
